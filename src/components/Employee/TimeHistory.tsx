@@ -330,7 +330,7 @@ export const TimeHistory: React.FC = () => {
               <DollarSign className="h-6 w-6 text-emerald-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Celkové náklady</p>
+              <p className="text-sm font-medium text-gray-600">Čistá mzda</p>
               <p className="text-2xl font-bold text-gray-900">
                 {totalCost.toLocaleString('cs-CZ')} Kč
               </p>
