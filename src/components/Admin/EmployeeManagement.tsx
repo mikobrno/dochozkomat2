@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { Plus, Edit2, Trash2, UserCheck, DollarSign, Mail } from 'lucide-react';
+import { useNotifications } from '../../contexts/NotificationContext';
 import { getUsers, deleteUser } from '../../utils/supabaseStorage';
 import { User } from '../../types';
 import { EmployeeModal } from './EmployeeModal';
 import { format } from 'date-fns';
 
 export const EmployeeManagement: React.FC = () => {
+  const { showConfirm, showSuccess, showError } = useNotifications();
   const [employees, setEmployees] = useState<User[]>(
     []
   );
@@ -41,12 +43,18 @@ export const EmployeeManagement: React.FC = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (window.confirm('Opravdu chcete deaktivovat tohoto zaměstnance? Uživatel se nebude moci přihlásit, ale jeho data zůstanou zachována.')) {
+    showConfirm(
+      'Deaktivovat zaměstnance',
+      'Opravdu chcete deaktivovat tohoto zaměstnance? Uživatel se nebude moci přihlásit, ale jeho data zůstanou zachována.',
+      async () => {
       const success = await deleteUser(id);
       if (success) {
+        showSuccess('Úspěch', 'Zaměstnanec byl úspěšně deaktivován.');
         refreshEmployees();
+      } else {
+        showError('Chyba', 'Nepodařilo se deaktivovat zaměstnance.');
       }
-    }
+    });
   };
 
   const toggleActive = async (id: string, isActive: boolean) => {

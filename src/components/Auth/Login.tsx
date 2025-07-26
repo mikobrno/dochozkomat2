@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { AlertCircle, Loader2, Eye, EyeOff, User, Mail, Lock } from 'lucide-react';
+import { useNotifications } from '../../contexts/NotificationContext';
 import { useAuth } from '../../contexts/AuthContext';
 
 type AuthMode = 'login' | 'register';
 
 export const Login: React.FC = () => {
+  const { showError, showSuccess } = useNotifications();
   const [authMode, setAuthMode] = useState<AuthMode>('login');
   const [formData, setFormData] = useState({
     email: '',
@@ -86,7 +88,7 @@ export const Login: React.FC = () => {
       if (authMode === 'login') {
         const success = await login(formData.email, formData.password);
         if (!success) {
-          setError('Neplatné přihlašovací údaje nebo neaktivní účet.');
+          showError('Chyba přihlášení', 'Neplatné přihlašovací údaje nebo neaktivní účet.');
         }
       } else {
         // Registration
@@ -98,12 +100,14 @@ export const Login: React.FC = () => {
         });
 
         if (!result.success) {
-          setError(result.error || 'Registrace se nezdařila. Zkuste to znovu.');
+         showError('Chyba registrace', result.error || 'Registrace se nezdařila. Zkuste to znovu.');
+       } else {
+         showSuccess('Úspěch', 'Registrace byla úspěšná! Nyní jste přihlášeni.');
         }
       }
     } catch (error: any) {
       console.error('Auth error:', error);
-      setError('Došlo k neočekávané chybě. Zkuste to znovu.');
+     showError('Neočekávaná chyba', 'Došlo k neočekávané chybě. Zkuste to znovu.');
     } finally {
       setIsSubmitting(false);
     }
@@ -128,13 +132,6 @@ export const Login: React.FC = () => {
 
         <div className="bg-white rounded-xl shadow-lg p-8">
           <form className="space-y-6" onSubmit={handleSubmit}>
-            {error && (
-              <div className="flex items-center space-x-2 p-3 bg-red-50 border border-red-200 rounded-lg">
-                <AlertCircle className="h-4 w-4 text-red-600 flex-shrink-0" />
-                <p className="text-sm text-red-600">{error}</p>
-              </div>
-            )}
-
             {authMode === 'register' && (
               <div className="grid grid-cols-2 gap-4">
                 <div>

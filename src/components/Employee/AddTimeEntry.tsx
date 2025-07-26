@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { Save, Clock, Calendar } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useNotifications } from '../../contexts/NotificationContext';
 import { createTimeEntry, getProjects, calculateHoursFromTime } from '../../utils/supabaseStorage';
 import { useNavigate } from 'react-router-dom';
 
 export const AddTimeEntry: React.FC = () => {
   const { user } = useAuth();
+  const { showSuccess, showError } = useNotifications();
   const navigate = useNavigate();
   const [projects, setProjects] = useState<any[]>([]);
   const [formData, setFormData] = useState({
@@ -18,7 +20,6 @@ export const AddTimeEntry: React.FC = () => {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [successMessage, setSuccessMessage] = useState('');
 
   React.useEffect(() => {
     const loadProjects = async () => {
@@ -83,7 +84,6 @@ export const AddTimeEntry: React.FC = () => {
     if (!validateForm() || !user) return;
 
     setIsSubmitting(true);
-    setSuccessMessage('');
 
     try {
       await createTimeEntry({
@@ -96,7 +96,7 @@ export const AddTimeEntry: React.FC = () => {
         description: formData.description.trim() || undefined
       });
 
-      setSuccessMessage('Záznam byl úspěšně přidán!');
+      showSuccess('Úspěch', 'Záznam byl úspěšně přidán!');
       
       // Reset form
       setFormData({
@@ -114,7 +114,7 @@ export const AddTimeEntry: React.FC = () => {
       }, 2000);
     } catch (error) {
       console.error('Error creating time entry:', error);
-      setErrors({ submit: 'Nepodařilo se uložit záznam. Zkuste to znovu.' });
+      showError('Chyba', 'Nepodařilo se uložit záznam. Zkuste to znovu.');
     } finally {
       setIsSubmitting(false);
     }
@@ -139,18 +139,6 @@ export const AddTimeEntry: React.FC = () => {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            {errors.submit && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-sm text-red-600">{errors.submit}</p>
-              </div>
-            )}
-
-            {successMessage && (
-              <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-                <p className="text-sm text-green-600">{successMessage}</p>
-              </div>
-            )}
-
             <div className="grid grid-cols-1 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">

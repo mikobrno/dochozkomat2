@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Save, Settings as SettingsIcon, Building2, DollarSign, Clock } from 'lucide-react';
+import { useNotifications } from '../../contexts/NotificationContext';
 import { getSettings, saveSettings } from '../../utils/storage'; // Import storage functions
 import { Settings as SettingsType } from '../../types';
 
 export const Settings: React.FC = () => {
+  const { showSuccess, showError } = useNotifications();
   const [formData, setFormData] = useState<SettingsType>({
     id: '',
     companyName: '',
@@ -16,7 +18,6 @@ export const Settings: React.FC = () => {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [successMessage, setSuccessMessage] = useState('');
 
   useEffect(() => {
     const settings = getSettings();
@@ -60,7 +61,6 @@ export const Settings: React.FC = () => {
     if (!validateForm()) return;
 
     setIsSubmitting(true);
-    setSuccessMessage('');
 
     try {
       const updatedSettings = {
@@ -69,13 +69,10 @@ export const Settings: React.FC = () => {
       };
 
       saveSettings(updatedSettings);
-      setSuccessMessage('Settings saved successfully!');
-      
-      // Clear success message after 3 seconds
-      setTimeout(() => setSuccessMessage(''), 3000);
+      showSuccess('Úspěch', 'Nastavení bylo úspěšně uloženo!');
     } catch (error) {
       console.error('Error saving settings:', error);
-      setErrors({ submit: 'Failed to save settings. Please try again.' });
+      showError('Chyba', 'Nepodařilo se uložit nastavení. Zkuste to znovu.');
     } finally {
       setIsSubmitting(false);
     }
@@ -99,18 +96,6 @@ export const Settings: React.FC = () => {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {errors.submit && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-sm text-red-600">{errors.submit}</p>
-            </div>
-          )}
-
-          {successMessage && (
-            <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-              <p className="text-sm text-green-600">Nastavení bylo úspěšně uloženo!</p>
-            </div>
-          )}
-
           {/* Company Information */}
           <div className="space-y-4">
             <div className="flex items-center space-x-2">

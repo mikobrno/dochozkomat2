@@ -1,11 +1,13 @@
 import React, { useState, useMemo } from 'react';
 import { Clock, Edit2, Trash2, Calendar, Save, X, Users, DollarSign, Filter, Download } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useNotifications } from '../../contexts/NotificationContext';
 import { getTimeEntries, getProjects, deleteTimeEntry, updateTimeEntry, getUsers, calculateGrossSalary, exportToCSV } from '../../utils/supabaseStorage';
 import { format } from 'date-fns';
 
 export const TimeHistory: React.FC = () => {
   const { user } = useAuth();
+  const { showSuccess, showError, showConfirm } = useNotifications();
   const [selectedMonth, setSelectedMonth] = useState(format(new Date(), 'yyyy-MM'));
   const [selectedEmployee, setSelectedEmployee] = useState<string>('all');
   const [editingEntry, setEditingEntry] = useState<string | null>(null);
@@ -183,18 +185,17 @@ export const TimeHistory: React.FC = () => {
   };
 
   const handleDelete = async (id: string) => {
-    // Enhanced confirmation dialog
-    const confirmMessage = 'Opravdu chcete trvale smazat tento časový záznam?\n\nTato akce je nevratná a záznam bude odstraněn z databáze.';
-    
-    if (window.confirm(confirmMessage)) {
+    showConfirm(
+      'Smazat časový záznam',
+      'Opravdu chcete trvale smazat tento časový záznam? Tato akce je nevratná a záznam bude odstraněn z databáze.',
+      async () => {
       try {
         console.log('Attempting to delete time entry with ID:', id);
         const success = await deleteTimeEntry(id);
         console.log('Delete operation result:', success);
         
         if (success) {
-          // Show success feedback
-          alert('Záznam byl úspěšně smazán.');
+          showSuccess('Úspěch', 'Záznam byl úspěšně smazán.');
           
           // Refresh data after successful deletion
           try {
@@ -208,12 +209,11 @@ export const TimeHistory: React.FC = () => {
             setUsers(usersData);
           } catch (refreshError) {
             console.error('Error refreshing data after deletion:', refreshError);
-            // Even if refresh fails, the deletion was successful
-            alert('Záznam byl smazán, ale nepodařilo se obnovit seznam. Obnovte stránku.');
+            showWarning('Upozornění', 'Záznam byl smazán, ale nepodařilo se obnovit seznam. Obnovte stránku.');
           }
         } else {
           console.error('Delete operation returned false');
-          alert('Nepodařilo se smazat záznam. Možná nemáte dostatečná oprávnění nebo záznam již neexistuje.');
+          showError('Chyba', 'Nepodařilo se smazat záznam. Možná nemáte dostatečná oprávnění nebo záznam již neexistuje.');
         }
       } catch (error) {
         console.error('Error deleting time entry:', error);
@@ -232,9 +232,9 @@ export const TimeHistory: React.FC = () => {
           errorMessage += 'Zkuste to znovu nebo kontaktujte administrátora.';
         }
         
-        alert(errorMessage);
+        showError('Chyba při mazání', errorMessage);
       }
-    }
+    });
   };
 
   const handleExport = () => {

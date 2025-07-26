@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Save, FolderOpen } from 'lucide-react';
+import { useNotifications } from '../../contexts/NotificationContext';
 import { createProject, updateProject, getProjects } from '../../utils/supabaseStorage';
 
 interface ProjectModalProps {
@@ -15,6 +16,7 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
   editingId,
   onSuccess
 }) => {
+  const { showSuccess, showError } = useNotifications();
   const [formData, setFormData] = useState({
     name: ''
   });
@@ -75,15 +77,17 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
 
       if (editingId) {
         await updateProject(editingId, projectData);
+       showSuccess('Úspěch', 'Projekt byl úspěšně aktualizován.');
       } else {
         await createProject(projectData);
+       showSuccess('Úspěch', 'Projekt byl úspěšně přidán.');
       }
 
       onSuccess();
       onClose();
     } catch (error) {
       console.error('Error saving project:', error);
-      setErrors({ submit: 'Nepodařilo se uložit projekt. Zkuste to znovu.' });
+     showError('Chyba', 'Nepodařilo se uložit projekt. Zkuste to znovu.');
     } finally {
       setIsSubmitting(false);
     }
@@ -118,12 +122,6 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
-              {errors.submit && (
-                <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                  <p className="text-sm text-red-600">{errors.submit}</p>
-                </div>
-              )}
-
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Název projektu

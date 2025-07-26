@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Save, User } from 'lucide-react';
+import { useNotifications } from '../../contexts/NotificationContext';
 import { User as UserType } from '../../types';
 import { createUser, updateUser, getUsers } from '../../utils/supabaseStorage';
 
@@ -16,6 +17,7 @@ export const EmployeeModal: React.FC<EmployeeModalProps> = ({
   editingId,
   onSuccess
 }) => {
+  const { showSuccess, showError } = useNotifications();
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -119,15 +121,17 @@ export const EmployeeModal: React.FC<EmployeeModalProps> = ({
 
       if (editingId) {
         await updateUser(editingId, userData);
+        showSuccess('Úspěch', 'Zaměstnanec byl úspěšně aktualizován.');
       } else {
         await createUser(userData);
+        showSuccess('Úspěch', 'Zaměstnanec byl úspěšně přidán.');
       }
 
       onSuccess();
       onClose();
     } catch (error) {
       console.error('Error saving employee:', error);
-      setErrors({ submit: 'Nepodařilo se uložit zaměstnance. Zkuste to znovu.' });
+      showError('Chyba', 'Nepodařilo se uložit zaměstnance. Zkuste to znovu.');
     } finally {
       setIsSubmitting(false);
     }
@@ -162,12 +166,6 @@ export const EmployeeModal: React.FC<EmployeeModalProps> = ({
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
-              {errors.submit && (
-                <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                  <p className="text-sm text-red-600">{errors.submit}</p>
-                </div>
-              )}
-
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
